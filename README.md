@@ -1,4 +1,4 @@
-# auto-update-server.sh
+# maj-auto-linux
 
 > Script Bash de **mise à jour automatique** pour serveurs Linux : il détecte la distribution, met à jour les paquets, garde des logs détaillés et envoie un récapitulatif par e-mail.
 
@@ -68,8 +68,8 @@ Mettre à jour un serveur régulièrement est essentiel (correctifs de sécurit�
 ## Installation
 
 ```bash
-git clone https://github.com/thomaswithlinux/auto-update-server.sh.git
-cd auto-update-server.sh
+git clone https://github.com/thomaswithlinux/maj-auto-linux.git
+cd maj-auto-linux
 chmod +x maj_auto.sh
 ```
 
