@@ -96,7 +96,7 @@ section:
 
 | Variable          | Purpose                                          | Default value                  |
 |-------------------|--------------------------------------------------|--------------------------------|
-| `MAIL_DEST`       | Address that receives the summary                | `thomasletard3@gmail.com`      |
+| `MAIL_DEST`       | Address that receives the summary                | `admin@example.com`           |
 | `MAIL_FROM`       | Displayed sender                                 | `maj-auto@<machine-name>`      |
 | `LOG_BASE`        | Root folder for the logs                         | `/var/log/maj_auto`            |
 | `RETENTION_JOURS` | Age (in days) after which logs are deleted       | `30`                           |
