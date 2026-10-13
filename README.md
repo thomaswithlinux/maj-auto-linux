@@ -1,69 +1,85 @@
-# maj-auto-linux
+<p align="center">
+  <img src="docs/banner.svg" alt="maj-auto-linux" width="100%">
+</p>
 
-> Script Bash de **mise à jour automatique** pour serveurs Linux : il détecte la distribution, met à jour les paquets, garde des logs détaillés et envoie un récapitulatif par e-mail.
+# maj-auto-linux — *patch it, log it, mail it*
 
-**Description courte (pour le champ « About » de GitHub) :**
-`Script Bash multi-distributions de mise à jour automatique des paquets, avec logs détaillés et récapitulatif envoyé par mail.`
+![Shell](https://img.shields.io/badge/shell-Bash-f5b53f?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Linux-f5b53f?style=flat-square)
+![License](https://img.shields.io/github/license/thomaswithlinux/maj-auto-linux?style=flat-square&color=f5b53f)
+![Last commit](https://img.shields.io/github/last-commit/thomaswithlinux/maj-auto-linux?style=flat-square&color=f5b53f)
 
----
+Automatic **package update** script for Linux servers. It detects the
+distribution, updates the packages, keeps detailed logs and sends a summary
+report by e-mail. One Bash file, no dependency beyond a mail agent.
 
-## Sommaire
+## Table of contents
 
-- [À quoi ça sert ?](#à-quoi-ça-sert-)
-- [Fonctionnalités](#fonctionnalités)
-- [Distributions supportées](#distributions-supportées)
-- [Prérequis](#prérequis)
+- [Overview](#overview)
+- [Features](#features)
+- [Supported distributions](#supported-distributions)
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
-- [Utilisation](#utilisation)
-- [Automatiser avec cron](#automatiser-avec-cron)
-- [Logs générés](#logs-générés)
-- [Le mail de récapitulatif](#le-mail-de-récapitulatif)
-- [Code de sortie](#code-de-sortie)
-- [Sécurité et bonnes pratiques](#sécurité-et-bonnes-pratiques)
-- [Licence](#licence)
+- [Usage](#usage)
+- [Scheduling with cron](#scheduling-with-cron)
+- [Generated logs](#generated-logs)
+- [The summary e-mail](#the-summary-e-mail)
+- [Exit codes](#exit-codes)
+- [Security and good practices](#security-and-good-practices)
+- [Project structure](#project-structure)
+- [License](#license)
+- [Author](#author)
 
----
+## Overview
 
-## À quoi ça sert ?
+Keeping a server up to date is essential (security fixes, bug fixes). This
+script automates the whole routine, whatever Linux distribution is used.
 
-> 💡 **Analogie :** imagine un **concierge d'immeuble** qui, chaque nuit, vérifie si des réparations sont à faire, les effectue, note tout dans un cahier, puis te dépose un résumé dans ta boîte aux lettres. Ce script est ce concierge pour ton serveur.
+> **Analogy:** picture a building caretaker who, every night, checks whether
+> repairs are needed, carries them out, writes everything in a logbook, then
+> drops a summary in your mailbox. This script is that caretaker for your
+> server.
 
-Mettre à jour un serveur régulièrement est essentiel (correctifs de sécurité, corrections de bugs). Ce script automatise toute la routine, quelle que soit la distribution Linux utilisée.
+## Features
 
-## Fonctionnalités
+1. **Automatic detection** of the Linux family (via `/etc/os-release`).
+2. **Refresh** of the package indexes (the equivalent of `apt update`).
+3. **List** of the packages to upgrade before installing them.
+4. **Non-interactive upgrade** of the packages (`upgrade`).
+5. **Complete logs** in a timestamped folder created by the script.
+6. **Summary** `.txt` file (status, number of packages, reboot required,
+   upgrade excerpt).
+7. **E-mail delivery** of the summary as an attachment.
+8. **Anti-duplicate lock** (`flock`): two instances can never run at the same
+   time.
+9. **Automatic cleanup** of logs older than 30 days.
+10. **Automatic `sudo` re-launch** when the script is not started as root.
 
-1. **Détection automatique** de la famille Linux (via `/etc/os-release`).
-2. **Rafraîchissement** des index de paquets (équivalent de `apt update`).
-3. **Liste** des paquets à mettre à jour avant de les installer.
-4. **Mise à jour** non interactive des paquets (`upgrade`).
-5. **Logs complets** dans un dossier horodaté créé par le script.
-6. **Récapitulatif** `.txt` (statut, nombre de paquets, redémarrage nécessaire, extrait de l'upgrade).
-7. **Envoi par mail** du récapitulatif en pièce jointe.
-8. **Verrou anti-doublon** (`flock`) : impossible de lancer deux instances en même temps.
-9. **Nettoyage automatique** des logs de plus de 30 jours.
-10. **Auto-relance avec `sudo`** si le script n'est pas lancé en root.
+## Supported distributions
 
-## Distributions supportées
+| Family  | Distributions (examples)                               | Package manager |
+|---------|--------------------------------------------------------|-----------------|
+| Debian  | Debian, Ubuntu, Linux Mint, Raspbian, Kali, Pop!_OS    | `apt`           |
+| Red Hat | RHEL, Fedora, CentOS, Rocky, AlmaLinux, Oracle, Amazon | `dnf` / `yum`   |
+| Arch    | Arch, Manjaro, EndeavourOS                             | `pacman`        |
+| SUSE    | openSUSE (Leap/Tumbleweed), SLES                       | `zypper`        |
+| Alpine  | Alpine Linux                                           | `apk`           |
 
-| Famille  | Distributions (exemples)                              | Gestionnaire |
-|----------|-------------------------------------------------------|--------------|
-| Debian   | Debian, Ubuntu, Linux Mint, Raspbian, Kali, Pop!_OS   | `apt`        |
-| Red Hat  | RHEL, Fedora, CentOS, Rocky, AlmaLinux, Oracle, Amazon| `dnf` / `yum`|
-| Arch     | Arch, Manjaro, EndeavourOS                            | `pacman`     |
-| SUSE     | openSUSE (Leap/Tumbleweed), SLES                      | `zypper`     |
-| Alpine   | Alpine Linux                                          | `apk`        |
+## Requirements
 
-## Prérequis
-
-- Un système Linux avec **Bash** et les droits **root** (ou `sudo`).
-- Pour l'envoi de mail : un agent de messagerie configuré, fournissant au choix :
-  - `sendmail` (postfix, exim, msmtp, ssmtp…) — méthode préférée, avec pièce jointe MIME ;
-  - `mutt` ;
+- A Linux system with **Bash** and **root** privileges (or `sudo`).
+- For e-mail delivery: a configured mail agent providing one of the following:
+  - `sendmail` (postfix, exim, msmtp, ssmtp…) — preferred, with a MIME
+    attachment;
+  - `mutt`;
   - `mail` / `mailx`.
-- Le script essaie ces méthodes dans cet ordre. Si aucune n'est disponible, la mise à jour a quand même lieu, seul le mail n'est pas envoyé.
+- The script tries these methods in that order. If none is available, the
+  update still runs; only the e-mail is not sent.
 
-> 💡 **Analogie :** le script sait *rédiger* la lettre, mais il lui faut un *facteur* (le MTA) pour la livrer. Sans facteur configuré, la lettre reste sur le bureau.
+> **Analogy:** the script knows how to *write* the letter, but it needs a
+> *postman* (the MTA) to deliver it. Without a configured postman, the letter
+> stays on the desk.
 
 ## Installation
 
@@ -75,82 +91,104 @@ chmod +x maj_auto.sh
 
 ## Configuration
 
-Les paramètres se trouvent au début de `maj_auto.sh`, section **« 1. CONFIGURATION »** :
+The settings are at the top of `maj_auto.sh`, in the **"1. CONFIGURATION"**
+section:
 
-| Variable          | Rôle                                              | Valeur par défaut              |
-|-------------------|---------------------------------------------------|--------------------------------|
-| `MAIL_DEST`       | Adresse qui reçoit le récapitulatif               | `thomasletard3@gmail.com`      |
-| `MAIL_FROM`       | Expéditeur affiché                                | `maj-auto@<nom-de-la-machine>` |
-| `LOG_BASE`        | Dossier racine des logs                           | `/var/log/maj_auto`            |
-| `RETENTION_JOURS` | Âge (en jours) au-delà duquel les logs sont supprimés | `30`                       |
+| Variable          | Purpose                                          | Default value                  |
+|-------------------|--------------------------------------------------|--------------------------------|
+| `MAIL_DEST`       | Address that receives the summary                | `thomasletard3@gmail.com`      |
+| `MAIL_FROM`       | Displayed sender                                 | `maj-auto@<machine-name>`      |
+| `LOG_BASE`        | Root folder for the logs                         | `/var/log/maj_auto`            |
+| `RETENTION_JOURS` | Age (in days) after which logs are deleted       | `30`                           |
 
-⚠️ Pense à remplacer `MAIL_DEST` par **ta propre adresse** si tu n'es pas le propriétaire initial du script.
+> **Important:** replace `MAIL_DEST` with **your own address** if you are not
+> the original owner of the script.
 
-## Utilisation
+## Usage
 
 ```bash
 sudo ./maj_auto.sh
 ```
 
-Le script affiche sa progression à l'écran en 4 étapes :
+The script prints its progress on screen in 4 steps:
 
-1. Rafraîchissement des index
-2. Liste des paquets à mettre à jour
-3. Mise à jour des paquets (ignorée s'il n'y a rien à faire)
-4. Récapitulatif et envoi du mail
+1. Refresh of the package indexes
+2. List of the packages to upgrade
+3. Package upgrade (skipped when there is nothing to do)
+4. Summary and e-mail delivery
 
-## Automatiser avec cron
+## Scheduling with cron
 
-Pour l'exécuter chaque nuit à 3h00, édite la crontab de root :
+To run it every night at 03:00, edit root's crontab:
 
 ```bash
 sudo crontab -e
 ```
 
-puis ajoute :
+then add:
 
 ```cron
-0 3 * * * /chemin/vers/maj_auto.sh >/dev/null 2>&1
+0 3 * * * /path/to/maj_auto.sh >/dev/null 2>&1
 ```
 
-> 💡 **Analogie :** `cron` est le **réveil programmable** de Linux : il lance le script à l'heure voulue, sans que tu aies à y penser.
+> **Analogy:** `cron` is Linux's programmable alarm clock: it starts the script
+> at the chosen time, without you having to think about it.
 
-## Logs générés
+## Generated logs
 
-Chaque exécution crée son propre dossier horodaté :
+Each run creates its own timestamped folder:
 
 ```
 /var/log/maj_auto/
 └── 20261005_143012/
-    ├── global.log              # journal complet
-    ├── 01_refresh_index.log    # sortie du rafraîchissement des index
-    ├── 02_paquets_a_maj.log    # liste des paquets concernés
-    ├── 03_upgrade.log          # sortie de l'upgrade
-    └── RECAPITULATIF.txt       # résumé envoyé par mail
+    ├── global.log              # complete journal
+    ├── 01_refresh_index.log    # output of the index refresh
+    ├── 02_paquets_a_maj.log    # list of the packages concerned
+    ├── 03_upgrade.log          # output of the upgrade
+    └── RECAPITULATIF.txt       # summary sent by e-mail
 ```
 
-Le dossier est protégé (`chmod 750`) : seuls root et son groupe peuvent le lire.
+The folder is protected (`chmod 750`): only root and its group can read it.
 
-## Le mail de récapitulatif
+## The summary e-mail
 
-- **Sujet :** `SAUVEGARDE DU JOUR : JJ/MM/AAAA - HH:mm:ss`
-- **Corps :** machine, distribution, nombre de paquets, redémarrage nécessaire.
-- **Pièce jointe :** `recapitulatif_maj_<machine>_<date>.txt`.
+- **Subject:** `SAUVEGARDE DU JOUR : DD/MM/YYYY - HH:mm:ss`
+- **Body:** machine, distribution, number of packages, reboot required.
+- **Attachment:** `recapitulatif_maj_<machine>_<date>.txt`.
 
-## Code de sortie
+## Exit codes
 
-| Code | Signification                                             |
-|------|-----------------------------------------------------------|
-| `0`  | Rafraîchissement et upgrade réussis                       |
-| `1`  | Une étape a échoué, ou erreur fatale (utile pour cron / supervision) |
+| Code | Meaning                                                              |
+|------|----------------------------------------------------------------------|
+| `0`  | Refresh and upgrade succeeded                                        |
+| `1`  | A step failed, or fatal error (useful for cron / monitoring)         |
 
-## Sécurité et bonnes pratiques
+## Security and good practices
 
-- Les fichiers de configuration existants sont **conservés** lors des mises à jour Debian/Ubuntu (`--force-confold`).
-- L'upgrade n'effectue pas de changement de version majeure de la distribution.
-- Le redémarrage n'est **jamais** fait automatiquement : le mail t'indique simplement s'il est nécessaire (vérifié sur Debian/Ubuntu et Red Hat).
-- Teste d'abord le script sur une machine non critique avant de l'automatiser en production.
+- Existing configuration files are **kept** during Debian/Ubuntu upgrades
+  (`--force-confold`).
+- The upgrade never performs a major version change of the distribution.
+- The server is **never** rebooted automatically: the e-mail only tells you
+  whether a reboot is required (checked on Debian/Ubuntu and Red Hat).
+- Test the script on a non-critical machine first, before automating it in
+  production.
 
-## Licence
+## Project structure
 
-Distribué sous licence **Apache 2.0** — voir le fichier [LICENSE](LICENSE).
+```
+maj-auto-linux/
+├── docs/
+│   └── banner.svg      # README banner
+├── maj_auto.sh         # the update script
+├── LICENSE             # MIT license
+└── README.md           # this file
+```
+
+## License
+
+Released under the **MIT** license — see the [LICENSE](LICENSE) file.
+
+## Author
+
+**Thomas Letard** — [@thomaswithlinux](https://github.com/thomaswithlinux) ·
+[Portfolio](https://thomaswithlinux.github.io/)
