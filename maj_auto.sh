@@ -37,7 +37,7 @@ export LC_ALL=C
 # 1. CONFIGURATION (à adapter si besoin)
 ###############################################################################
 
-MAIL_DEST="thomasletard3@gmail.com"      # Destinataire du récapitulatif
+MAIL_DEST="admin@example.com"           # Destinataire du récapitulatif
 MAIL_FROM="maj-auto@$(hostname -f 2>/dev/null || hostname)"  # Expéditeur affiché
 LOG_BASE="/var/log/maj_auto"             # Répertoire racine des logs (créé par le script)
 RETENTION_JOURS=30                       # Les logs plus vieux que N jours sont supprimés
